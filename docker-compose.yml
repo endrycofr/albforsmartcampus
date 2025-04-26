@@ -1,27 +1,27 @@
 services:
-  loadbalancer:
-    image: nginx:latest
-    container_name: loadbalancer
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./app1.conf:/etc/nginx/conf.d/app1.conf
-      - ./app2.conf:/etc/nginx/conf.d/app2.conf
-      - ./app3.conf:/etc/nginx/conf.d/app3.conf
+  nginx_lb:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx_load_balancer
     ports:
-      - "80:80"
+      - "80:8080" # untuk akses aplikasi
+      - "81:8081" # untuk status monitoring
     networks:
-      - laravel_network
+      - lb_network
 
   loadbalancer_exporter:
     image: nginx/nginx-prometheus-exporter:latest
-    container_name: loadbalancer_exporter
-    environment:
-      - NGINX_STATUS_URL=http://loadbalancer/status
+    container_name: lb_exporter
+    depends_on:
+      - nginx_lb
+    command:
+      - "-nginx.scrape-uri=http://nginx_lb:8081/nginx_status"
     ports:
       - "9113:9113"
     networks:
-      - laravel_network
+      - lb_network
 
 networks:
-  laravel_network:
+  lb_network:
     driver: bridge
