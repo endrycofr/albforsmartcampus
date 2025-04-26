@@ -5,8 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: nginx_load_balancer
     ports:
-      - "80:8080" # untuk akses aplikasi
-      - "81:8081" # untuk status monitoring
+      - "80:8080" # Akses aplikasi via load balancer
+      - "81:8090" # Status monitoring (ganti 8081 ke 8090 supaya gak bentrok app)
     networks:
       - lb_network
 
@@ -16,9 +16,9 @@ services:
     depends_on:
       - nginx_lb
     command:
-      - "-nginx.scrape-uri=http://nginx_lb:8081/nginx_status"
+      - "-nginx.scrape-uri=http://nginx_lb:8090/nginx_status"
     ports:
-      - "9113:9113"
+      - "9113:9113" # Port untuk Prometheus scrape
     networks:
       - lb_network
 
